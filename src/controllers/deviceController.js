@@ -367,10 +367,9 @@ export const markOnlineByApiKey = async (req, res) => {
       `UPDATE devices d
        SET last_seen = NOW()
        FROM users u
-       WHERE d.device_uid = $1
-       AND d.user_id = u.id
-       AND u.api_key = $2
-       RETURNING d.last_seen`,
+       WHERE d.user_id = u.id
+       AND u.api_key = $1
+       RETURNING d.device_uid, d.last_seen`,
       [device_uid, apiKey]
     );
 
