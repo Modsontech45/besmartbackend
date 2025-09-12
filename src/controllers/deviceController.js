@@ -351,18 +351,17 @@ export const markOnline = async (req, res) => {
 };
 
 export const markOnlineByApiKey = async (req, res) => {
-  const { device_uid } = req.body;
   const apiKey = req.headers["x-api-key"]; // ESP32 authentication
   const lang = req.headers["accept-language"] || "en";
 
-  if (!device_uid || !apiKey) {
+  if (!apiKey) {
     return res
       .status(400)
       .json({ error: getMessage(lang, "device.missingFields") });
   }
 
   try {
-    // Update last_seen where device_uid belongs to the user with this api_key
+    // Update last_seen for all devices belonging to the user with this API key
     const result = await pool.query(
       `UPDATE devices d
        SET last_seen = NOW()
@@ -370,7 +369,7 @@ export const markOnlineByApiKey = async (req, res) => {
        WHERE d.user_id = u.id
        AND u.api_key = $1
        RETURNING d.device_uid, d.last_seen`,
-      [device_uid, apiKey]
+      [apiKey]
     );
 
     if (result.rowCount === 0) {
@@ -381,7 +380,7 @@ export const markOnlineByApiKey = async (req, res) => {
 
     return res.json({
       message: getMessage(lang, "device.markedOnline"),
-      last_seen: result.rows[0].last_seen,
+      updated_devices: result.rows, // return all updated devices
     });
   } catch (err) {
     console.error("markOnlineByApiKey Error:", err);
@@ -390,6 +389,7 @@ export const markOnlineByApiKey = async (req, res) => {
       .json({ error: getMessage(lang, "common.internal_error") });
   }
 };
+
 
 // Edit device details (name, type, metadata)
 export const editDevice = async (req, res) => {
