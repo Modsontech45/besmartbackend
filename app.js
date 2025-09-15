@@ -58,7 +58,7 @@ app.options("*", cors());
 app.use((req, res, next) => {
   console.log(`\nIncoming Request:`);
   console.log(`Method: ${req.method}`);
-  console.log(`URL: ${req.originalUrl}`);
+  console.log(`URL origin: ${req.originalUrl}`);
   console.log(`Headers: ${JSON.stringify(req.headers, null, 2)}`);
   console.log(`Body: ${JSON.stringify(req.body, null, 2)}`);
   next();
