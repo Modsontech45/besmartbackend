@@ -8,17 +8,28 @@ import listEndpoints from "express-list-endpoints";
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost:8080",
+  "https://besmart-delta.vercel.app", // your production frontend
   "capacitor://localhost",
-  "http://127.0.0.1:5500",
-  "http://localhost:5173",
-  "https://besmart-delta.vercel.app",
+  "ionic://localhost"
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+  origin: function (origin, callback) {
+    if (!origin) {
+      // No origin (like native HTTP requests) → allow
+      return callback(null, true);
+    }
+
+    if (
+      allowedOrigins.includes(origin) ||
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||         // allow localhost:* 
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||      // allow 127.0.0.1:* 
+      /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)   // allow LAN devices
+    ) {
+      return callback(null, true);
+    }
+
+    console.warn("❌ Blocked by CORS:", origin);
     return callback(new Error("CORS not allowed for this origin"), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
