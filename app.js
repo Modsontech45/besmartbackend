@@ -8,7 +8,7 @@ import listEndpoints from "express-list-endpoints";
 const app = express();
 
 const allowedOrigins = [
-  "https://besmart-delta.vercel.app", // your production frontend
+  "https://besmart-delta.vercel.app", // production frontend
   "capacitor://localhost",
   "ionic://localhost"
 ];
@@ -16,19 +16,34 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) {
-      // No origin (like native HTTP requests) → allow
+      // No origin (native apps, curl, server-to-server)
       return callback(null, true);
     }
 
+    // ✅ Always allow production + capacitor origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // ✅ Allow localhost on http/https with any port
+    if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
+    // ✅ Allow 127.0.0.1 on http/https with any port
+    if (/^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
+    // ✅ Allow LAN devices (192.168.x.x and 10.x.x.x ranges)
     if (
-      allowedOrigins.includes(origin) ||
-      /^http:\/\/localhost(:\d+)?$/.test(origin) ||         // allow localhost:* 
-      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||      // allow 127.0.0.1:* 
-      /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)   // allow LAN devices
+      /^https?:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin) ||
+      /^https?:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)
     ) {
       return callback(null, true);
     }
 
+    // ❌ Anything else is blocked
     console.warn("❌ Blocked by CORS:", origin);
     return callback(new Error("CORS not allowed for this origin"), false);
   },
