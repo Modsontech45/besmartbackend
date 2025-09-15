@@ -7,38 +7,26 @@ import listEndpoints from "express-list-endpoints";
 
 const app = express();
 
-// --- Allowed origins ---
 const allowedOrigins = [
   "http://localhost:8080",
-  "capacitor://localhost",               // Capacitor Android/iOS
+  "capacitor://localhost",
   "http://127.0.0.1:5500",
   "http://localhost:5173",
-  "https://besmart-delta.vercel.app",    // deployed React app
+  "https://besmart-delta.vercel.app",
 ];
 
-// --- CORS middleware ---
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (e.g., mobile apps, Postman)
     if (!origin) return callback(null, true);
-
     if (allowedOrigins.includes(origin)) return callback(null, true);
-
     return callback(new Error("CORS not allowed for this origin"), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
 }));
 
-// Enable preflight for all routes
-app.options("*", cors({
-  origin: allowedOrigins,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true,
-}));
-
-// --- Body parser ---
 app.use(express.json());
+app.options("*", cors());
 
 // --- Middleware to log all incoming requests ---
 app.use((req, res, next) => {
@@ -64,5 +52,5 @@ app.listEndpoints = () => {
   });
 };
 
-// --- Export app for server + WebSocket integration ---
+// Export app for server + WebSocket integration
 export default app;
